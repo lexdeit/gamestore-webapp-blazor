@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject GamesClient GamesClient
 @inject GenresClient GenresClient
+@rendermode InteractiveServer
 
 <PageTitle>@title</PageTitle>
 
@@ -26,7 +27,7 @@
             <div class="col-md-4">
 
 
-                <EditForm Model="@game" FormName="editGame" OnValidSubmit="HandleSubmit">
+                <EditForm Model="@game" FormName="editGame" OnValidSubmit="HandleSubmitAsync">
                     <DataAnnotationsValidator />
                     <ValidationSummary />
 
@@ -100,7 +101,7 @@
     private string title = string.Empty;
 
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
 
         if (game is not null)
@@ -110,7 +111,7 @@
 
         if (Id is not null)
         {
-            game = GamesClient.GetGame(Id.Value);
+            game = await GamesClient.GetGameAsync(Id.Value);
             title = $"Edit {game.Name}";
         }
         else
@@ -125,24 +126,24 @@
         }
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        genres = GenresClient.GetGenres();
+        genres = await GenresClient.GetGenresAsync();
     }
 
-    private void HandleSubmit()
+    private async Task HandleSubmitAsync()
     {
 
         ArgumentNullException.ThrowIfNull(game);
 
         if (Id is null)
         {
-            GamesClient.AddGame(game);
+            await GamesClient.AddGameAsync(game);
         }
         else
         {
             game.Id = Id.Value;
-            GamesClient.UpdateGame(game);
+            await GamesClient.UpdateGameAsync(game);
         }
 
         NavigationManager.NavigateTo("/");
